@@ -3,17 +3,17 @@
 
         $options = array(
         
-            "CURLOPT_RETURNTRANSFER" => true, // return web page
+            "CURLOPT_RETURNTRANSFER" => 1, // return web page
             
-            "CURLOPT_HEADER" => false, // don’t return headers
+            "CURLOPT_HEADER" => 0, // don’t return headers
             
-            "CURLOPT_FOLLOWLOCATION" => true, // follow redirects
+            "CURLOPT_FOLLOWLOCATION" => 1, // follow redirects
             
             "CURLOPT_ENCODING" => "", // handle all encodings
             
             "CURLOPT_USERAGENT" => "spider", // who am i
             
-            "CURLOPT_AUTOREFERER" => true, // set referer on redirect
+            "CURLOPT_AUTOREFERER" => 1, // set referer on redirect
             
             "CURLOPT_CONNECTTIMEOUT" => 60, // timeout on connect
             
@@ -32,38 +32,46 @@
         curl_close( $ch );
         
         return $content;
-        
-        }
+}
 
     //var_dump(file_get_contents("https://uslugi.gospmr.org/?option=com_uslugi&view=gosuslugi&task=getUslugi",false));
 
-    ob_start();
-    get_web_page("https://uslugi.gospmr.org/?option=com_uslugi&view=gosuslugi&task=getUslugi");
-    $flsData = ob_get_clean();
-    $glbData = json_decode($flsData,true);
+    $time = microtime();
+    if(! file_exists("uslugiAll.json") ){
+        ob_start();
+        get_web_page("https://uslugi.gospmr.org/?option=com_uslugi&view=gosuslugi&task=getUslugi");
+        $flsData = ob_get_clean();
+        $glbData = json_decode($flsData,true);
 
+        file_put_contents("uslugiAll.json",$flsData);
+    } else {
+        $glbData = json_decode(file_get_contents("uslugiAll.json"),true);
+    }
     //var_dump(gettype($flsData),$glbData["ulist"]);die();
 
     $tmpData = array();
 
     foreach($glbData["ulist"] as $v){
         if($v["has_electronic_view"] == 1){
-            ob_start();
-            get_web_page("https://uslugi.gospmr.org/?option=com_uslugi&view=usluga&task=getUsluga&uslugaId={$v["id"]}");
-            $tempData = json_decode(ob_get_clean(),true);
-            //var_dump($tempData,"<hr />");
+            // ob_start();
+            
+            // get_web_page("https://uslugi.gospmr.org/?option=com_uslugi&view=usluga&task=getUsluga&uslugaId={$v["id"]}");
+            
+            // $tempData = json_decode(ob_get_clean(),true);
+            //var_dump($tempData["organization"],$tempData["description"]["payment"],$tempData["description"]["state_duty_payment"],"<hr />"); die();
             $tmpData[] = array(
                 "id"=> $v["id"],
                 "name" => $v["name"],
-                "organization"=>$tempData["organization"],
-                "payment"=>$tempData["payment"],
-                "state_duty_payment"=>$tempData["state_duty_payment"],
+                //"organization"=>$tempData["organization"],
+                //"payment"=>$tempData["description"]["payment"],
+                //"state_duty_payment"=>$tempData["description"]["state_duty_payment"],
                 "has_electronic_view"=>$v["has_electronic_view"],
                 
             );
-            return;
+            //return;
         }
     }
+    var_dump($tmpData);//die();
+    var_dump("<hr />",microtime()-$time);
 
-    var_dump($tmpData[0]);die();
-?>
+    //die();
