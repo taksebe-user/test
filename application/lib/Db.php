@@ -22,7 +22,8 @@ class Db /* extends PDO */{
                                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                             ));
         } catch (Exception $e){
-            if(isset($_SESSION["user"]["dev"]) or isset($_COOKIE["DEV"]) and $_COOKIE["DEV"]=="DEV") debug($e);
+            //if(isset($_SESSION["user"]["dev"]) or isset($_COOK1IE["DEV"]) and $_COOKIE["DEV"]=="DEV") 
+            debug($e);
             die("Произошла ошибка подключения к базам данных");
         }
     }

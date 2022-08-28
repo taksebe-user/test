@@ -7,7 +7,7 @@ use application\lib\Db;
 abstract class Model {
     protected $db;
     
-    public function __construct($type="disp"){
+    public function __construct($type="db"){
         $this->db = new DB($type);
     }
 }

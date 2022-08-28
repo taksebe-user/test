@@ -9,7 +9,7 @@ abstract class Controller
 
     public $route;
     public $view;
-    public $modelType = "disp";
+    public $modelType = "db";
     public $acl;
 
     public function __construct($route)
@@ -27,9 +27,7 @@ abstract class Controller
             $route["controller"],
             $this->modelType
         );
-        if (!$this->checkACL() and !isset($_SESSION["user"])) {
-            $this->view->redirect("/account/login");
-        }
+        
     }
 
     public function loadModel($name, $type)
