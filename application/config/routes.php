@@ -1,7 +1,5 @@
 <?php
 
-use application\controllers\AccountController;
-
 return [
     //MainController.php
     "/"=>["controller"=>"main","action"=>"index"],
