@@ -16,28 +16,24 @@ class MainController extends Controller
             View::errorCode(403, '');
         } else {
             //todo curl get data
-            return ($this->filterDocuments($this->model->getAllData()));
+            //file_put_contents ("filterAll.json",
+            $this->filterDocuments($this->model->getAllData());
         }
     }
 
     private function filterDocuments($arrDocs)
     {
-        foreach ($arrDocs as $doc) {
-            if ($doc["has_electronic_view"] == 1) {
-                $current = $this->model->getCurrent($doc["id"]);
-                //if ($doc["description"]["payment"]["account_number"] != "") 
-                $this->model->setCurrent([
-                    $current["id"],
-                    $current["name"],
-                    $current["organization"],
-                    $current["description"]["payment"],
-                    $current["description"]["state_duty_payment"],
-                    $current["description"]["has_electronic_view"],
-                ]);
+        $tmpDocs = array();
+        foreach ($arrDocs as $doc) { //search and filter created files for optimization process
+            $id = $doc["id"];
+            if ($doc["has_electronic_view"] == 1 and !file_exists("files/{$id}.json")) {
+                $tmpDocs[] = intval($id);
             }
         }
-        return $arrDocs;
+        debug($tmpDocs);
+
+        foreach ($tmpDocs as $id) {
+            $this->model->getCurrent($id);
+        }
     }
 }
-
-?>
