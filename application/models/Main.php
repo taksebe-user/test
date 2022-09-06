@@ -61,30 +61,64 @@ class Main extends Model
     function setCurrent($data)
     {
         $params = array(
-            "id" => [$data["id"],"i"],
-            "name" => [$data["name"],"s"],
-            "org" => [$data["organization"],"s"],
-            "payment" => [$this->getPaymentID($data["payment"]),"i"],
-            "sdp" => [$this->getSDP_ID($data["state_duty_payment"]),"i"],
-            "has_electronic_view" => [$data["has_electronic_view"],"i"],
+            "id" => [$data["id"], "i"],
+            "name" => [$data["name"], "s"],
+            "org" => [$data["organization"], "s"],
+            "payment" => [$this->getPaymentID($data["payment"]), "i"],
+            "sdp" => [$this->getSDP_ID($data["state_duty_payment"]), "i"],
+            "has_electronic_view" => [$data["has_electronic_view"], "i"],
         );
         //debug($params);
         try {
-            $this->db->query(
-                "
-            REPLACE INTO `usluga` (`id`, `name`, `organization`, 
-                `paymant_id`, `state_duty_payment_id`, `has_electronic_view`
-            ) 
-            VALUES (
-                :id, :name, :org, :payment, :sdp,
-                :has_electronic_view
-            ) ",
-                $params
+            $ID = $this->db->column("
+                    SELECT `id_record` 
+                    FROM `usluga` 
+                    WHERE `id` = :id",
+                array("id" => $params["id"])
             );
+
+            if ($ID === false) {
+                $this->db->query("
+                    INSERT INTO `usluga` (`id`, `name`, `organization`, 
+                        `paymant_id`, `state_duty_payment_id`, `has_electronic_view`
+                    ) 
+                    VALUES (
+                        :id, :name, :org, :payment, :sdp,
+                        :has_electronic_view
+                    ) ",
+                    $params
+                );
+            } else {
+                $params["id_r"] = array($ID,"i");
+
+                $this->db->query("
+                    UPDATE `usluga` 
+                    SET `id`=:id, 
+                        `name`=:name, 
+                        `organization`=:org, 
+                        `paymant_id`=:payment, 
+                        `state_duty_payment_id`=:sdp, 
+                        `has_electronic_view`=:has_electronic_view
+                    WHERE `id_record` = :id_r
+                         ",
+                    $params
+                );
+            }
         } catch (\Throwable $e) {
             debug($data);
         }
     }
+
+    function getAllFromDB()
+    {
+        return $this->db->row("
+            select `id`, `name`, `organization`, `has_electronic_view` 
+            from `usluga`
+            order by `organization`,`name`
+        ");
+    }
+
+
     private function getTaxID($data)
     {
         $params = array(

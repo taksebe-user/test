@@ -29,7 +29,8 @@ class MainController extends Controller
 
             //saving generated xml file; 
             $result = $xml_data->asXML('clearXML.xml');
-            //debug($result);
+            
+            debug($this->model->getAllFromDB());
         }
     }
 
