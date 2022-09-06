@@ -114,7 +114,7 @@ class Main extends Model
         return $this->db->row("
             select `id`, `name`, `organization`, `has_electronic_view` 
             from `usluga`
-            order by `organization`,`name`
+            order by `organization`,`id`
         ");
     }
 
