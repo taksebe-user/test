@@ -30,7 +30,7 @@ class MainController extends Controller
             //saving generated xml file; 
             $result = $xml_data->asXML('clearXML.xml');
             
-            debug($this->model->getAllFromDB());
+            $this->view->render("Testing Test",["uslugi"=>$this->model->getAllFromDB()]);
         }
     }
 
