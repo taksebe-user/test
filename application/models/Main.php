@@ -60,19 +60,42 @@ class Main extends Model
 
     function setCurrent($data)
     {
-        debug($this->getTaxID(array(0, 0, 0, 0, 0, 0, 5, 0)));
+        $params = array(
+            "id" => [$data["id"],"i"],
+            "name" => [$data["name"],"s"],
+            "org" => [$data["organization"],"s"],
+            "payment" => [$this->getPaymentID($data["payment"]),"i"],
+            "sdp" => [$this->getSDP_ID($data["state_duty_payment"]),"i"],
+            "has_electronic_view" => [$data["has_electronic_view"],"i"],
+        );
+        //debug($params);
+        try {
+            $this->db->query(
+                "
+            REPLACE INTO `usluga` (`id`, `name`, `organization`, 
+                `paymant_id`, `state_duty_payment_id`, `has_electronic_view`
+            ) 
+            VALUES (
+                :id, :name, :org, :payment, :sdp,
+                :has_electronic_view
+            ) ",
+                $params
+            );
+        } catch (\Throwable $e) {
+            debug($data);
+        }
     }
     private function getTaxID($data)
     {
         $params = array(
-            "tir" => [$data[0], "i"],
-            "ben" => [$data[1], "i"],
-            "ryb" => [$data[2], "i"],
-            "kam" => [$data[3], "i"],
-            "dub" => [$data[4], "i"],
-            "gri" => [$data[5], "i"],
-            "slo" => [$data[6], "i"],
-            "dne" => [$data[7], "i"],
+            "tir" => [$data["tax_code_tir"], "i"],
+            "ben" => [$data["tax_code_ben"], "i"],
+            "ryb" => [$data["tax_code_ryb"], "i"],
+            "kam" => [$data["tax_code_kam"], "i"],
+            "dub" => [$data["tax_code_dub"], "i"],
+            "gri" => [$data["tax_code_gri"], "i"],
+            "slo" => [$data["tax_code_slo"], "i"],
+            "dne" => [$data["tax_code_dne"], "i"],
         );
 
         $ID = $this->db->column(
@@ -87,14 +110,18 @@ class Main extends Model
                 and `tax_code_gri` = :gri
                 and `tax_code_slo` = :slo
                 and `tax_code_dne` = :dne
-        ", $params );
+        ",
+            $params
+        );
 
-        if($ID === false){
-            $ID = $this->db->query(" insert into `tax_codes` (
+        if ($ID === false) {
+            $ID = $this->db->query(
+                " insert into `tax_codes` (
                     `tax_code_tir`, `tax_code_ben`, `tax_code_ryb`, 
                     `tax_code_kam`, `tax_code_dub`, `tax_code_gri`, 
                     `tax_code_slo`, `tax_code_dne`) 
-                values (:tir, :ben, :ryb, :kam, :dub, :gri, :slo, :dne) ", $params
+                values (:tir, :ben, :ryb, :kam, :dub, :gri, :slo, :dne) ",
+                $params
             );
         }
 
@@ -104,16 +131,16 @@ class Main extends Model
     private function getAccountNumID($data)
     {
         $params = array(
-            "tir" => [$data[0], "i"],
-            "ben" => [$data[1], "i"],
-            "ryb" => [$data[2], "i"],
-            "kam" => [$data[3], "i"],
-            "dub" => [$data[4], "i"],
-            "gri" => [$data[5], "i"],
-            "slo" => [$data[6], "i"],
-            "dne" => [$data[7], "i"],
+            "tir" => [$data["account_number"], "i"],
+            "ben" => [$data["account_number_ben"], "i"],
+            "ryb" => [$data["account_number_ryb"], "i"],
+            "kam" => [$data["account_number_kam"], "i"],
+            "dub" => [$data["account_number_dub"], "i"],
+            "gri" => [$data["account_number_gri"], "i"],
+            "slo" => [$data["account_number_slo"], "i"],
+            "dne" => [$data["account_number_dne"], "i"],
         );
-    
+
 
         $ID = $this->db->column(
             "
@@ -127,13 +154,16 @@ class Main extends Model
                 and `number_gri` = :gri
                 and `number_slo` = :slo
                 and `number_dne` = :dne
-        ", $params );
+        ",
+            $params
+        );
 
-        if($ID === false){
+        if ($ID === false) {
             $ID = $this->db->query(
                 "insert into `account_numbers` (
                 `number`, `number_ben`, `number_ryb`, `number_kam`, `number_dub`, `number_gri`, `number_slo`, `number_dne`
-                ) values ( :tir, :ben, :ryb, :kam, :dub, :gri, :slo, :dne )", $params
+                ) values ( :tir, :ben, :ryb, :kam, :dub, :gri, :slo, :dne )",
+                $params
             );
         }
 
@@ -142,12 +172,14 @@ class Main extends Model
 
     private function getSDP_ID($data)
     {
+        $tax_id = $this->getTaxID($data["tax_codes"]);
+        $acc_num_id = $this->getAccountNumID($data["account_numbers"]);
         $params = array(
-            "num" => [$data[0], "i"],
-            "tax" => [$data[1], "i"],
-            "num_ids" => [$data[2], "i"],
-            "article" => [$data[3], "i"],
-            "incomes" => [$data[4], "s"],
+            "num" => [$data["account_number"], "i"],
+            "tax" => [$tax_id, "i"],
+            "num_ids" => [$acc_num_id, "i"],
+            "article" => [$data["article"], "i"],
+            "incomes" => [$data["incomes_classification"], "s"],
         );
 
         $ID = $this->db->column(
@@ -159,9 +191,11 @@ class Main extends Model
                 and `account_numbers_id` = :num_ids
                 and `article` = :article
                 and `incomes_classification` = :incomes
-        ", $params);
+        ",
+            $params
+        );
 
-        if($ID === false){
+        if ($ID === false) {
             $ID = $this->db->query(
                 "insert into SDP (
                     `account_number`,
@@ -169,7 +203,59 @@ class Main extends Model
                     `account_numbers_id`,
                     `article`,
                     `incomes_classification`
-                ) values ( :num, :tax, :num_ids, :article, :incomes )", $params
+                ) values ( :num, :tax, :num_ids, :article, :incomes )",
+                $params
+            );
+        }
+
+        return $ID;
+    }
+
+    private function getPaymentID($data)
+    {
+        $params = array(
+            "type" => [$data["payment_type"], "s"],
+            "amount" => [$data["payment_amount"], "s"],
+            "a_urgent" => [$data["payment_amount_urgent"], "s"],
+            "a_coins" => [$data["payment_amount_coins"], "i"],
+            "a_urgent_coins" => [$data["payment_amount_urgent_coins"], "i"],
+            "a_ul" => [$data["payment_amount_ul"], "s"],
+            "a_urgent_ul" => [$data["payment_amount_urgent_ul"], "s"],
+            "a_coins_ul" => [$data["payment_amount_coins_ul"], "i"],
+            "a_urgent_coins_ul" => [$data["payment_amount_urgent_coins_ul"], "i"],
+            "method" => [$data["payment_method"], "s"],
+        );
+
+        $ID = $this->db->column(
+            "
+            select `ID` from `payment`
+            where 
+                    `type` = :type
+                and `amount` = :amount
+                and `amount_urgent` = :a_urgent
+                and `amount_coins` = :a_coins
+                and `amount_urgent_coins` = :a_urgent_coins
+                and `amount_ul` = :a_ul
+                and `amount_urgent_ul` = :a_urgent_ul
+                and `amount_coins_ul` = :a_coins_ul
+                and `amount_urgent_coins_ul` = :a_urgent_coins_ul
+                and `method` = :method
+        ",
+            $params
+        );
+
+        if ($ID === false) {
+            $ID = $this->db->query(
+                " insert into `payment` (
+                    `type`, `amount`, `amount_urgent`, `amount_coins`
+                    , `amount_urgent_coins`, `amount_ul`, `amount_urgent_ul`
+                    , `amount_coins_ul`, `amount_urgent_coins_ul`, `method`
+                ) 
+                values (:type, :amount, :a_urgent, :a_coins, 
+                    :a_urgent_coins, :a_ul, :a_urgent_ul, :a_coins_ul, 
+                    :a_urgent_coins_ul, :method
+                ) ",
+                $params
             );
         }
 
