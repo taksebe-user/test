@@ -51,7 +51,10 @@ class MainController extends Controller
         if (count($tmpDocs) == 0) {
             $tmpFiles = array();
             foreach (array_diff(scandir("files/"), array('.', '..')) as $file) {
-                $tmpFiles[] = json_decode(file_get_contents("files/$file"));
+                $fileContents = json_decode(file_get_contents("files/$file"),true);
+                $tmpFiles[] = $fileContents;
+                //add logic to adding records to DB
+                $this->model->setCurrent($fileContents);
             }
 
             return ($tmpFiles);

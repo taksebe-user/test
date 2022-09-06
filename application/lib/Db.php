@@ -5,7 +5,7 @@ namespace application\lib;
 use PDO;
 use \Exception;
 
-class Db /* extends PDO */{
+class Db /*  extends PDO */ {
 
     protected $db;
 
@@ -50,7 +50,8 @@ class Db /* extends PDO */{
             }
         }
         $stmt->execute();
-        return $stmt;
+        $res = (stripos($sql, "insert into")===false)?$stmt:$this->db->lastInsertId();
+        return $res;
     }
 
     public function row($sql,$params=[]){
