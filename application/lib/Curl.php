@@ -37,6 +37,7 @@ class Curl {
         curl_setopt($curl, CURLOPT_URL,$this->url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_HTTPHEADER, $this->headers);
+        curl_setopt($curl, CURLOPT_ENCODING, 'gzip');
         curl_setopt($curl, CURLOPT_POST, 1);
         curl_setopt($curl, CURLOPT_POSTFIELDS, $this->query);
         $this->responses = curl_exec($curl);
@@ -53,6 +54,7 @@ class Curl {
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL,$full_url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_ENCODING, 'gzip');
         curl_setopt($curl, CURLOPT_HTTPHEADER, $this->headers);
         $this->responses = curl_exec($curl);
         curl_close($curl);

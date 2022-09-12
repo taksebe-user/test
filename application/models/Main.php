@@ -29,9 +29,9 @@ class Main extends Model
         return $res["ulist"];
     }
 
-    function getCurrent($id)
+    function getCurrent($id, $rewrite = false)
     {
-        if (!file_exists("files/{$id}.json")) {
+        if ($rewrite or !file_exists("files/{$id}.json")) {
             $url = "https://uslugi.gospmr.org/?option=com_uslugi&view=usluga&task=getUsluga&uslugaId={$id}";
             $opts = ["CURLOPT_SSL_VERIFYHOST" => false];
             $curl = new cUrl($url);
@@ -47,10 +47,13 @@ class Main extends Model
                 "state_duty_payment" => $res["description"]["state_duty_payment"],
                 "has_electronic_view" => $res["description"]["has_electronic_view"],
             ];
+
+            $content = json_encode($tmpDoc, JSON_NUMERIC_CHECK | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_FORCE_OBJECT);
             file_put_contents(
                 "files/{$id}.json",
-                json_encode($tmpDoc, JSON_NUMERIC_CHECK | JSON_UNESCAPED_SLASHES | JSON_FORCE_OBJECT)
+                $content
             );
+            $res = $content;
             $curl = null;
         } else {
             $res = json_decode(file_get_contents("files/{$id}.json"), true);
@@ -68,9 +71,11 @@ class Main extends Model
             "sdp" => [$this->getSDP_ID($data["state_duty_payment"]), "i"],
             "has_electronic_view" => [$data["has_electronic_view"], "i"],
         );
-        //debug($params);
+        if(is_null($params["id"][0]) or !isset($data["id"])) throw new \Exception("Empty data to insert", 1);
+        
         try {
-            $ID = $this->db->column("
+            $ID = $this->db->column(
+                "
                     SELECT `id_record` 
                     FROM `usluga` 
                     WHERE `id` = :id",
@@ -78,7 +83,8 @@ class Main extends Model
             );
 
             if ($ID === false) {
-                $this->db->query("
+                $this->db->query(
+                    "
                     INSERT INTO `usluga` (`id`, `name`, `organization`, 
                         `paymant_id`, `state_duty_payment_id`, `has_electronic_view`
                     ) 
@@ -89,9 +95,10 @@ class Main extends Model
                     $params
                 );
             } else {
-                $params["id_r"] = array($ID,"i");
+                $params["id_r"] = array($ID, "i");
 
-                $this->db->query("
+                $this->db->query(
+                    "
                     UPDATE `usluga` 
                     SET `id`=:id, 
                         `name`=:name, 
@@ -118,6 +125,22 @@ class Main extends Model
         ");
     }
 
+    function writeLog($data=null)
+    {
+        $params = array(
+            "date_r"=>[date('Y-m-d H:i:s',$_SERVER["REQUEST_TIME"]),"s"],
+            "ip"=>[$_SERVER["REMOTE_ADDR"],"s"],
+            "request"=>[$_SERVER["REQUEST_URI"],"s"],
+            "request_method"=>[$_SERVER["REQUEST_METHOD"],"s"],
+            "errors"=>[((isset($data))?$data:""),"s"],
+        );
+        //debug($params);
+        $this->db->query(
+            " insert into `log` (`date`, `ip`, `request`, `request_method`, `errors`)
+            values (:date_r, :ip, :request, :request_method, :errors) ",
+            $params
+        );
+    }
 
     private function getTaxID($data)
     {
