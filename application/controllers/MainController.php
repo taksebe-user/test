@@ -84,7 +84,7 @@ class MainController extends Controller
                 $this->array_to_xml($value, $subnode);
             } else {
                 //debug(["$key", gettype($value)]);
-                $xml_data->addChild("$key", html_entity_decode($value, ENT_COMPAT, 'cp1252'));
+                $xml_data->addChild("$key", htmlspecialchars("$value"));
             }
         }
     }
